@@ -26,9 +26,7 @@ export class ConfigService {
 
   getString(key: StringEnvVariables): string {
     if (!!this.envConfig[key] && typeof this.envConfig[key] !== 'string') {
-      throw new TypeError(
-        `Config '${key}' not a string ${this.envConfig[key]}`,
-      );
+      throw new TypeError(`Config '${key}' not a string ${this.envConfig[key]}`);
     }
 
     return this.envConfig[key] as string;
@@ -53,21 +51,16 @@ export class ConfigService {
   private validateInput(envConfig: EnvConfig): EnvConfig {
     const schema = {
       // App
-      MODE: Joi.string()
-        .valid('development', 'staging', 'production')
-        .default('development'),
+      MODE: Joi.string().valid('development', 'staging', 'production').default('development'),
       PORT: Joi.number().default(3000),
     } as SchemaType;
 
     const envVarsSchema: Joi.ObjectSchema = Joi.object(schema);
 
-    const { error, value: validatedEnvConfig } = envVarsSchema.validate(
-      envConfig,
-      {
-        allowUnknown: true,
-        stripUnknown: true,
-      },
-    );
+    const { error, value: validatedEnvConfig } = envVarsSchema.validate(envConfig, {
+      allowUnknown: true,
+      stripUnknown: true,
+    });
 
     if (error) {
       throw new Error(`Config validation error: ${error.message}`);

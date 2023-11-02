@@ -1,7 +1,4 @@
-export type EnvConfig = Record<
-  string,
-  string | boolean | number | Array<number | string | boolean>
->;
+export type EnvConfig = Record<string, string | boolean | number | Array<number | string | boolean>>;
 
 export type BooleanEnvVariables = never;
 
@@ -14,8 +11,5 @@ export type SchemaType = {
 };
 
 export type ConfigType = {
-  [keys in BooleanEnvVariables | StringEnvVariables | NumberEnvVariables]:
-    | boolean
-    | string
-    | number;
+  [keys in BooleanEnvVariables | StringEnvVariables | NumberEnvVariables]: boolean | string | number;
 };
