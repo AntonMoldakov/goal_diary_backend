@@ -7,9 +7,10 @@ import { ConfigModule } from './config/config.module';
 @Module({
   imports: [
     ConfigModule,
+    // TODO: need to refactor
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'db',
+      host: 'localhost',
       port: 5432,
       username: 'postgres',
       password: 'postgres',
