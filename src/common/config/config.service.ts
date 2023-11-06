@@ -53,6 +53,12 @@ export class ConfigService {
       // App
       MODE: Joi.string().valid('development', 'staging', 'production').default('development'),
       PORT: Joi.number().default(3000),
+      // JWT
+      JWT_SECRET: Joi.string(),
+      JWT_ACCESS_TOKEN_TTL: Joi.number(),
+      // Mail service
+      MAIL_FROM_NAME: Joi.string(),
+      MAIL_TRANSPORT: Joi.string(),
     } as SchemaType;
 
     const envVarsSchema: Joi.ObjectSchema = Joi.object(schema);
