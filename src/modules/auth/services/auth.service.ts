@@ -33,7 +33,9 @@ export class AuthService {
       newUser.email = signUpDto.email;
       newUser.password = await this.hashingService.hash(signUpDto.password);
 
-      // TODO: refactor code
+      await this.usersRepository.save(newUser);
+
+      // TODO: need to generate code
       const code = 1234;
       await this.mailsService.sendConfirmEmailMail(newUser.email, code);
 

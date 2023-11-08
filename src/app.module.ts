@@ -20,7 +20,7 @@ import { MailsModule } from './common/mails/mails.module';
       username: 'postgres',
       password: 'postgres',
       database: 'postgres',
-      entities: [],
+      entities: ['/src/**/*.entity.ts'],
       synchronize: true,
       autoLoadEntities: true,
     }),
