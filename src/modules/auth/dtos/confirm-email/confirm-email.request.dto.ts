@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class ConfirmEmailRequestDto {
   @ApiProperty()
@@ -8,7 +8,7 @@ export class ConfirmEmailRequestDto {
   readonly email: string;
 
   @ApiProperty()
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
-  readonly code: string;
+  readonly code: number;
 }

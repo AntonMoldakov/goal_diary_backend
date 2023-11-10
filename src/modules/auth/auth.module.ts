@@ -8,8 +8,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersRepository } from '../users/users.repository';
 import { JWTConfigService } from './services/jwt-config.service';
 import { UsersModule } from '../users/users.module';
-import { HashingModule } from 'src/common/hashing/hashing.module';
-import { MailsModule } from 'src/common/mails/mails.module';
+import { HashingModule } from 'src/common/modules/hashing/hashing.module';
+import { MailsModule } from 'src/common/modules/mails/mails.module';
 import { UserEntity } from '../users/entities/user.entity';
 
 @Module({

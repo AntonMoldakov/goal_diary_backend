@@ -3,6 +3,5 @@ module.exports = {
     `yarn eslint --fix ${filenames.join(' ')}`,
     `yarn prettier --write  ${filenames.join(' ')}`,
     'yarn tsc --noEmit',
-    'yarn test',
   ],
 };

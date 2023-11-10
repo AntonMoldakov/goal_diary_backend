@@ -59,6 +59,10 @@ export class ConfigService {
       // Mail service
       MAIL_FROM_NAME: Joi.string(),
       MAIL_TRANSPORT: Joi.string(),
+      // Redis
+      REDIS_HOST: Joi.string(),
+      CONFIRM_CODE_TTL: Joi.number().default(60), // in seconds
+      REDIS_PORT: Joi.number(),
     } as SchemaType;
 
     const envVarsSchema: Joi.ObjectSchema = Joi.object(schema);

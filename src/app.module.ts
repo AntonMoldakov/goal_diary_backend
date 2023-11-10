@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from './common/config/config.module';
+import { ConfigModule } from './common/modules/config/config.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersService } from './modules/users/services/users.service';
 import { UsersModule } from './modules/users/users.module';
-import { HashingModule } from './common/hashing/hashing.module';
-import { MailsModule } from './common/mails/mails.module';
-
+import { HashingModule } from './common/modules/hashing/hashing.module';
+import { MailsModule } from './common/modules/mails/mails.module';
+import { CacheModule } from './common/modules/cache/cache.module';
 @Module({
   imports: [
     ConfigModule,
@@ -24,6 +24,18 @@ import { MailsModule } from './common/mails/mails.module';
       synchronize: true,
       autoLoadEntities: true,
     }),
+    // CacheModule.registerAsync({
+    //   isGlobal: true,
+    //   useClass: CacheConfigService,
+    // }),
+    CacheModule,
+
+    // CacheModule.register<RedisClientOptions>({
+    //   isGlobal: true,
+    //   store: redisStore as unknown as CacheStore,
+    //   host: process.env.REDIS_HOST,
+    //   port: process.env.REDIS_PORT,
+    // }),
     AuthModule,
     UsersModule,
     HashingModule,
