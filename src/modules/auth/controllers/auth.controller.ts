@@ -8,6 +8,8 @@ import {
   SignInResponseDto,
   SignUpRequestDto,
   SignUpResponseDto,
+  ResendCodeRequestDto,
+  ResendCodeResponseDto,
 } from '../dtos';
 
 import { Public } from '../decorators/public.decorator';
@@ -34,6 +36,15 @@ export class AuthController {
   @ApiOkResponse({ type: () => ConfirmEmailResponseDto })
   confirmEmail(@Body() confirmEmailDto: ConfirmEmailRequestDto): Promise<ConfirmEmailResponseDto> {
     return this.authService.confirmEmail(confirmEmailDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('resend-code')
+  @ApiOperation({ summary: 'resend code' })
+  @ApiBody({ type: () => ResendCodeRequestDto })
+  @ApiOkResponse({ type: () => ResendCodeResponseDto })
+  resendCode(@Body() confirmEmailDto: ResendCodeRequestDto): Promise<ResendCodeResponseDto> {
+    return this.authService.resendCode(confirmEmailDto);
   }
 
   @HttpCode(HttpStatus.OK)

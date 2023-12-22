@@ -1,6 +1,6 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, HttpException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfirmEmailRequestDto, SignUpRequestDto, SignUpResponseDto } from '../dtos';
+import { ConfirmEmailRequestDto, ResendCodeRequestDto, SignUpRequestDto, SignUpResponseDto } from '../dtos';
 import { HashingService } from 'src/common/modules/hashing/services/abstract/hashing.service';
 import { UserEntity } from 'src/modules/users/entities/user.entity';
 import { randomUUID } from 'crypto';
@@ -41,19 +41,12 @@ export class AuthService {
       const cashedUser = await this.cacheService.get<CacheUser>(email);
 
       if (cashedUser) {
-        throw new ConflictException({ message: 'Code sent', key: ErrorKeys.CODE_SENT });
+        throw new HttpException({ message: 'Code sent', key: ErrorKeys.CODE_SENT }, 400);
       }
 
       const hashedPassword = await this.hashingService.hash(password);
-      const code = generateCode(CODE_LENGTH);
 
-      await this.cacheService.set(
-        email,
-        { email: email, code, password: hashedPassword },
-        this.configService.getNumber('CONFIRM_CODE_TTL'),
-      );
-
-      await this.mailsService.sendConfirmEmailMail(email, code);
+      await this.generateAndSendCode(email, hashedPassword);
 
       return { status: true };
     } catch (error) {
@@ -69,23 +62,74 @@ export class AuthService {
     const cashedUser = await this.cacheService.get<CacheUser>(email);
 
     if (!cashedUser) {
-      throw new UnauthorizedException({ message: 'Code expired', key: ErrorKeys.CODE_EXPIRED });
+      throw new HttpException({ message: 'Code expired', key: ErrorKeys.CODE_EXPIRED }, 400);
     }
 
     const user = await this.usersRepository.findOneBy({ email });
 
     if (user) {
-      throw new UnauthorizedException({ message: 'User already exists', key: ErrorKeys.USER_ALREADY_EXISTS });
+      throw new ConflictException({ message: 'User already exists', key: ErrorKeys.USER_ALREADY_EXISTS });
     }
 
     if (code !== cashedUser.code) {
-      throw new UnauthorizedException({ message: 'Incorrect code', key: ErrorKeys.INCORRECT_CODE });
+      throw new HttpException({ message: 'Incorrect code', key: ErrorKeys.INCORRECT_CODE }, 400);
     }
 
     const newUser = await this.createUser(cashedUser.email, cashedUser.password);
     const accessToken = await this.jwtService.signAsync({ sub: newUser.id, email: newUser.email });
 
     return { accessToken };
+  }
+
+  async resendCode({ email }: ResendCodeRequestDto) {
+    const cashedUser = await this.cacheService.get<CacheUser>(email);
+
+    if (!cashedUser) {
+      throw new HttpException(
+        {
+          message: 'Something went wrong, please try sing up again',
+          key: ErrorKeys.CASHED_USER_DUES_NOT_EXIST,
+        },
+        400,
+      );
+    }
+
+    const dateOfCreation = new Date(cashedUser.createdAt);
+    const debounceDate = dateOfCreation;
+    debounceDate.setSeconds(
+      debounceDate.getSeconds() + this.configService.getNumber('CONFIRM_CODE_DEBOUNCE_TIME'),
+    );
+
+    if (debounceDate > new Date()) {
+      const sendInSeconds = Math.ceil((debounceDate.getTime() - new Date().getTime()) / 1000);
+
+      throw new HttpException(
+        {
+          message: `Code can be sent after ${sendInSeconds} seconds`,
+          key: ErrorKeys.CODE_DEBOUNCE,
+        },
+        400,
+      );
+    }
+
+    await this.generateAndSendCode(email, cashedUser.password);
+
+    return { status: true };
+  }
+
+  private async generateAndSendCode(email: string, hashedPassword: string) {
+    const code = generateCode(CODE_LENGTH);
+
+    const cachedUser: CacheUser = {
+      email: email,
+      code,
+      password: hashedPassword,
+      createdAt: new Date().toISOString(),
+    };
+
+    await this.cacheService.set(email, cachedUser, this.configService.getNumber('CONFIRM_CODE_TTL'));
+
+    await this.mailsService.sendConfirmEmailMail(email, code);
   }
 
   private async createUser(email: string, password: string) {
@@ -104,7 +148,10 @@ export class AuthService {
     const user = await this.usersRepository.findOneBy({ email: signInDto.email });
 
     if (!user) {
-      throw new UnauthorizedException({ message: 'User does not exist', key: ErrorKeys.USER_DOES_NOT_EXIST });
+      throw new UnauthorizedException({
+        message: 'Email or password incorrect',
+        key: ErrorKeys.EMAIL_OR_PASSWORD_INCORRECT,
+      });
     }
 
     try {
