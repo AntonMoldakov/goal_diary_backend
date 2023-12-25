@@ -6,3 +6,5 @@ export { SignInRequestDto } from './sign-in/sign-in.request.dto';
 export { SignInResponseDto } from './sign-in/sign-in.response.dto';
 export { ResendCodeRequestDto } from './resend-code/resend-code.request.dto';
 export { ResendCodeResponseDto } from './resend-code/resend-code.response.dto';
+export { ForgotPasswordRequestDto } from './forgot-password/forgot-password.request.dto';
+export { ForgotPasswordResponseDto } from './forgot-password/forgot-password.response.dto';

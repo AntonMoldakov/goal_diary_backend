@@ -42,6 +42,6 @@ import { CacheModule } from './common/modules/cache/cache.module';
     MailsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, UsersService],
+  providers: [AppService],
 })
 export class AppModule {}

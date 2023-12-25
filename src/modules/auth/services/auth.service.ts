@@ -1,6 +1,13 @@
 import { ConflictException, Injectable, UnauthorizedException, HttpException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfirmEmailRequestDto, ResendCodeRequestDto, SignUpRequestDto, SignUpResponseDto } from '../dtos';
+import {
+  ConfirmEmailRequestDto,
+  ForgotPasswordRequestDto,
+  ForgotPasswordResponseDto,
+  ResendCodeRequestDto,
+  SignUpRequestDto,
+  SignUpResponseDto,
+} from '../dtos';
 import { HashingService } from 'src/common/modules/hashing/services/abstract/hashing.service';
 import { UserEntity } from 'src/modules/users/entities/user.entity';
 import { randomUUID } from 'crypto';
@@ -40,13 +47,38 @@ export class AuthService {
 
       const cashedUser = await this.cacheService.get<CacheUser>(email);
 
-      if (cashedUser) {
-        throw new HttpException({ message: 'Code sent', key: ErrorKeys.CODE_SENT }, 400);
-      }
+      this.checkCodeDebounce(cashedUser.createdAt);
 
       const hashedPassword = await this.hashingService.hash(password);
 
       await this.generateAndSendCode(email, hashedPassword);
+
+      return { status: true };
+    } catch (error) {
+      if (error.code === pgUniqueViolationErrorCode) {
+        throw new ConflictException({ message: 'User already exists', key: ErrorKeys.USER_ALREADY_EXISTS });
+      }
+
+      throw error;
+    }
+  }
+
+  async forgotPassword({ email }: ForgotPasswordRequestDto): Promise<ForgotPasswordResponseDto> {
+    try {
+      const user = await this.usersRepository.findOneBy({ email: email });
+
+      if (!user) {
+        throw new ConflictException({
+          message: 'User does not exist',
+          key: ErrorKeys.USER_DOES_NOT_EXIST,
+        });
+      }
+
+      const cashedUser = await this.cacheService.get<CacheUser>(email);
+
+      this.checkCodeDebounce(cashedUser.createdAt);
+
+      await this.generateAndSendCode(email, user.password);
 
       return { status: true };
     } catch (error) {
@@ -65,14 +97,16 @@ export class AuthService {
       throw new HttpException({ message: 'Code expired', key: ErrorKeys.CODE_EXPIRED }, 400);
     }
 
+    if (code !== cashedUser.code) {
+      throw new HttpException({ message: 'Incorrect code', key: ErrorKeys.INCORRECT_CODE }, 400);
+    }
+
     const user = await this.usersRepository.findOneBy({ email });
 
     if (user) {
-      throw new ConflictException({ message: 'User already exists', key: ErrorKeys.USER_ALREADY_EXISTS });
-    }
+      const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email });
 
-    if (code !== cashedUser.code) {
-      throw new HttpException({ message: 'Incorrect code', key: ErrorKeys.INCORRECT_CODE }, 400);
+      return { accessToken };
     }
 
     const newUser = await this.createUser(cashedUser.email, cashedUser.password);
@@ -94,7 +128,15 @@ export class AuthService {
       );
     }
 
-    const dateOfCreation = new Date(cashedUser.createdAt);
+    this.checkCodeDebounce(cashedUser.createdAt);
+
+    await this.generateAndSendCode(email, cashedUser.password);
+
+    return { status: true };
+  }
+
+  private checkCodeDebounce(createdAt: string) {
+    const dateOfCreation = new Date(createdAt);
     const debounceDate = dateOfCreation;
     debounceDate.setSeconds(
       debounceDate.getSeconds() + this.configService.getNumber('CONFIRM_CODE_DEBOUNCE_TIME'),
@@ -111,10 +153,6 @@ export class AuthService {
         400,
       );
     }
-
-    await this.generateAndSendCode(email, cashedUser.password);
-
-    return { status: true };
   }
 
   private async generateAndSendCode(email: string, hashedPassword: string) {
