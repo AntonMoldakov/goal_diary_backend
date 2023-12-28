@@ -1,24 +1,21 @@
 import { Injectable } from '@nestjs/common';
-
-// This should be a real class/interface representing a user entity
-export type User = any;
+import { UpdatePasswordRequestDto, UpdatePasswordResponseDto } from '../dtos';
+import { UsersRepository } from '../users.repository';
+import { HashingService } from 'src/common/modules/hashing/services/abstract/hashing.service';
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      id: 1,
-      email: 'john',
-      password: 'changeme',
-    },
-    {
-      id: 2,
-      email: 'maria',
-      password: 'guess',
-    },
-  ];
+  constructor(private readonly usersRepository: UsersRepository, private hashingService: HashingService) {}
+  async updatePassword(
+    { password }: UpdatePasswordRequestDto,
+    email: string,
+  ): Promise<UpdatePasswordResponseDto> {
+    const user = await this.usersRepository.findOneBy({ email: email });
 
-  async findOneByEmail(email: string): Promise<User | undefined> {
-    return this.users.find((user) => user.email === email);
+    const hashedPassword = await this.hashingService.hash(password);
+
+    await this.usersRepository.update(user.id, { password: hashedPassword });
+
+    return { status: true };
   }
 }
