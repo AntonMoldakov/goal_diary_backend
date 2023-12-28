@@ -45,9 +45,11 @@ export class AuthService {
         });
       }
 
-      const cashedUser = await this.cacheService.get<CacheUser>(email);
+      const cashedUser = await this.cacheService.get<CacheUser | undefined>(email);
 
-      this.checkCodeDebounce(cashedUser.createdAt);
+      if (cashedUser) {
+        this.checkCodeDebounce(cashedUser.createdAt);
+      }
 
       const hashedPassword = await this.hashingService.hash(password);
 
@@ -74,9 +76,11 @@ export class AuthService {
         });
       }
 
-      const cashedUser = await this.cacheService.get<CacheUser>(email);
+      const cashedUser = await this.cacheService.get<CacheUser | undefined>(email);
 
-      this.checkCodeDebounce(cashedUser.createdAt);
+      if (cashedUser) {
+        this.checkCodeDebounce(cashedUser.createdAt);
+      }
 
       await this.generateAndSendCode(email, user.password);
 
@@ -91,7 +95,7 @@ export class AuthService {
   }
 
   async confirmEmail({ email, code }: ConfirmEmailRequestDto) {
-    const cashedUser = await this.cacheService.get<CacheUser>(email);
+    const cashedUser = await this.cacheService.get<CacheUser | undefined>(email);
 
     if (!cashedUser) {
       throw new HttpException({ message: 'Code expired', key: ErrorKeys.CODE_EXPIRED }, 400);
@@ -116,7 +120,7 @@ export class AuthService {
   }
 
   async resendCode({ email }: ResendCodeRequestDto) {
-    const cashedUser = await this.cacheService.get<CacheUser>(email);
+    const cashedUser = await this.cacheService.get<CacheUser | undefined>(email);
 
     if (!cashedUser) {
       throw new HttpException(
