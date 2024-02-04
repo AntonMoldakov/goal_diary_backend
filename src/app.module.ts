@@ -9,6 +9,7 @@ import { UsersModule } from './modules/users/users.module';
 import { HashingModule } from './common/modules/hashing/hashing.module';
 import { MailsModule } from './common/modules/mails/mails.module';
 import { CacheModule } from './common/modules/cache/cache.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 @Module({
   imports: [
     ConfigModule,
@@ -38,6 +39,7 @@ import { CacheModule } from './common/modules/cache/cache.module';
     // }),
     AuthModule,
     UsersModule,
+    TasksModule,
     HashingModule,
     MailsModule,
   ],
