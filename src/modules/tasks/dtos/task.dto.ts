@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import { TaskType } from '../tasks.types';
 
 export class TaskResponseDto {
   @ApiProperty()
@@ -13,6 +14,20 @@ export class TaskResponseDto {
   @ApiProperty({ type: String, nullable: true })
   @Expose()
   description: string | null;
+
+  @ApiProperty({
+    enum: TaskType,
+    default: TaskType.DEFAULT,
+  })
+  @Expose()
+  type: TaskType;
+
+  @ApiProperty()
+  checked: boolean;
+
+  @ApiProperty({ type: Date, nullable: true })
+  @Expose()
+  checkedAt?: Date | null;
 
   @ApiProperty()
   @Expose()

@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTaskRequestDto, CreateTaskResponseDto } from '../dtos';
+import {
+  CheckTaskRequestDto,
+  CheckTaskResponseDto,
+  CreateTaskRequestDto,
+  CreateTaskResponseDto,
+  UncheckTaskRequestDto,
+  UncheckTaskResponseDto,
+} from '../dtos';
 import { TasksRepository } from '../tasks.repository';
 import { UsersRepository } from 'src/modules/users/users.repository';
 import { TaskEntity } from '../entities/task.entity';
@@ -15,7 +22,7 @@ export class TasksService {
     { title, description, type }: CreateTaskRequestDto,
     email: string,
   ): Promise<CreateTaskResponseDto> {
-    const user = await this.usersRepository.findOneBy({ email: email });
+    const user = await this.usersRepository.findOneBy({ email });
 
     const newTask = new TaskEntity();
 
@@ -26,6 +33,28 @@ export class TasksService {
     newTask.userId = user.id;
 
     const task = await this.tasksRepository.save(newTask);
+
+    return { task };
+  }
+
+  async checkTask({ id }: CheckTaskRequestDto): Promise<CheckTaskResponseDto> {
+    const task = await this.tasksRepository.findOneBy({ id });
+
+    task.checked = true;
+    task.checkedAt = new Date();
+
+    await this.tasksRepository.update(task.id, task);
+
+    return { task };
+  }
+
+  async uncheckTask({ id }: UncheckTaskRequestDto): Promise<UncheckTaskResponseDto> {
+    const task = await this.tasksRepository.findOneBy({ id });
+
+    task.checked = false;
+    task.checkedAt = null;
+
+    await this.tasksRepository.update(task.id, task);
 
     return { task };
   }
