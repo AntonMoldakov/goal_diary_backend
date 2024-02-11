@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import {
-  CheckTaskRequestDto,
   CheckTaskResponseDto,
   CreateTaskRequestDto,
   CreateTaskResponseDto,
-  UncheckTaskRequestDto,
+  GetManyTasksResponseDto,
   UncheckTaskResponseDto,
 } from '../dtos';
 import { TasksRepository } from '../tasks.repository';
@@ -20,24 +19,22 @@ export class TasksService {
   ) {}
   async createTask(
     { title, description, type }: CreateTaskRequestDto,
-    email: string,
+    userId: string,
   ): Promise<CreateTaskResponseDto> {
-    const user = await this.usersRepository.findOneBy({ email });
-
     const newTask = new TaskEntity();
 
     newTask.id = randomUUID();
     newTask.title = title;
     newTask.description = description;
     newTask.type = type;
-    newTask.userId = user.id;
+    newTask.userId = userId;
 
     const task = await this.tasksRepository.save(newTask);
 
     return { task };
   }
 
-  async checkTask({ id }: CheckTaskRequestDto): Promise<CheckTaskResponseDto> {
+  async checkTask(id: string): Promise<CheckTaskResponseDto> {
     const task = await this.tasksRepository.findOneBy({ id });
 
     task.checked = true;
@@ -48,7 +45,7 @@ export class TasksService {
     return { task };
   }
 
-  async uncheckTask({ id }: UncheckTaskRequestDto): Promise<UncheckTaskResponseDto> {
+  async uncheckTask(id: string): Promise<UncheckTaskResponseDto> {
     const task = await this.tasksRepository.findOneBy({ id });
 
     task.checked = false;
@@ -57,5 +54,15 @@ export class TasksService {
     await this.tasksRepository.update(task.id, task);
 
     return { task };
+  }
+
+  async getManyTasks(email: string): Promise<GetManyTasksResponseDto> {
+    // TODO add pagination
+    const user = await this.usersRepository.findOneBy({ email });
+
+    const tasks = await this.tasksRepository.findBy({ userId: user.id });
+    console.log('user', user);
+    console.log('tasks', tasks);
+    return { tasks };
   }
 }

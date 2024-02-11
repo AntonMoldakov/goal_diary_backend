@@ -7,4 +7,6 @@ export enum ErrorKeys {
   CODE_DEBOUNCE = 'code_debounce',
   CASHED_USER_DUES_NOT_EXIST = 'cashed_user_dues_not_exist',
   INCORRECT_CODE = 'incorrect_code',
+
+  TASK_DOES_NOT_EXIST = 'task_does_not_exist',
 }

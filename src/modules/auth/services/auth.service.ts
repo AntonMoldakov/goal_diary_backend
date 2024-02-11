@@ -108,13 +108,17 @@ export class AuthService {
     const user = await this.usersRepository.findOneBy({ email });
 
     if (user) {
-      const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email });
+      const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email, id: user.id });
 
       return { accessToken };
     }
 
     const newUser = await this.createUser(cashedUser.email, cashedUser.password);
-    const accessToken = await this.jwtService.signAsync({ sub: newUser.id, email: newUser.email });
+    const accessToken = await this.jwtService.signAsync({
+      sub: newUser.id,
+      email: newUser.email,
+      id: user.id,
+    });
 
     return { accessToken };
   }
@@ -206,7 +210,7 @@ export class AuthService {
         });
       }
 
-      const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email });
+      const accessToken = await this.jwtService.signAsync({ sub: user.id, email: user.email, id: user.id });
 
       return { accessToken };
     } catch (error) {
