@@ -3,6 +3,7 @@ import {
   CheckTaskResponseDto,
   CreateTaskRequestDto,
   CreateTaskResponseDto,
+  DeleteTaskResponseDto,
   GetManyTasksResponseDto,
   UncheckTaskResponseDto,
 } from '../dtos';
@@ -33,6 +34,12 @@ export class TasksService {
     const task = await this.tasksRepository.save(newTask);
 
     return { task };
+  }
+
+  async deleteTask(id: string): Promise<DeleteTaskResponseDto> {
+    await this.tasksRepository.delete(id);
+
+    return { status: true };
   }
 
   async checkTask(id: string): Promise<CheckTaskResponseDto> {

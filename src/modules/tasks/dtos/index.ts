@@ -1,3 +1,4 @@
+export { DeleteTaskResponseDto } from './delete-task/delete-task.response.dto';
 export { CreateTaskRequestDto } from './create-task/create-task.request.dto';
 export { CreateTaskResponseDto } from './create-task/create-task.response.dto';
 export { CheckTaskResponseDto } from './check-task/check-task.response.dto';

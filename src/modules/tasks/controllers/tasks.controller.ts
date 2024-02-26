@@ -7,12 +7,14 @@ import {
   UseGuards,
   ParseUUIDPipe,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
   CheckTaskResponseDto,
   CreateTaskRequestDto,
   CreateTaskResponseDto,
+  DeleteTaskResponseDto,
   GetManyTasksResponseDto,
   UncheckTaskResponseDto,
 } from '../dtos';
@@ -36,6 +38,15 @@ export class TasksController {
   @ApiOkResponse({ type: () => CreateTaskResponseDto })
   createTask(@Body() dto: CreateTaskRequestDto, @GetUser() user: UserGuard): Promise<CreateTaskResponseDto> {
     return this.tasksService.createTask(dto, user.id);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete('delete-task/:id')
+  @UseGuards(UserTaskGuard)
+  @ApiOperation({ summary: 'Delete task' })
+  @ApiOkResponse({ type: () => DeleteTaskResponseDto })
+  deleteTask(@Param('id', ParseUUIDPipe) id: string): Promise<DeleteTaskResponseDto> {
+    return this.tasksService.deleteTask(id);
   }
 
   @HttpCode(HttpStatus.OK)
