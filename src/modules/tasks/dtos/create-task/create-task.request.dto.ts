@@ -11,7 +11,7 @@ export class CreateTaskRequestDto {
   @IsString()
   readonly description?: string;
 
-  @ApiProperty()
+  @ApiProperty({ default: TaskType.DEFAULT })
   @IsEnum(TaskType)
   readonly type: TaskType;
 }

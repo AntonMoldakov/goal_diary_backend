@@ -10,6 +10,7 @@ import { TasksRepository } from '../tasks.repository';
 import { UsersRepository } from 'src/modules/users/users.repository';
 import { TaskEntity } from '../entities/task.entity';
 import { randomUUID } from 'crypto';
+import { Pagination } from 'src/common/pagination/paginations-params.decorator';
 
 @Injectable()
 export class TasksService {
@@ -56,13 +57,22 @@ export class TasksService {
     return { task };
   }
 
-  async getManyTasks(email: string): Promise<GetManyTasksResponseDto> {
-    // TODO add pagination
+  async getManyTasks(email: string, { page, limit, offset }: Pagination): Promise<GetManyTasksResponseDto> {
     const user = await this.usersRepository.findOneBy({ email });
 
-    const tasks = await this.tasksRepository.findBy({ userId: user.id });
-    console.log('user', user);
-    console.log('tasks', tasks);
-    return { tasks };
+    const [tasks, total] = await this.tasksRepository.findAndCount({
+      where: { userId: user.id },
+      take: limit,
+      skip: offset,
+    });
+
+    return {
+      data: tasks,
+      meta: {
+        total,
+        page,
+        limit,
+      },
+    };
   }
 }

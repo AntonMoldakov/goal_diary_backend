@@ -8,7 +8,7 @@ import {
   ParseUUIDPipe,
   Param,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
   CheckTaskResponseDto,
   CreateTaskRequestDto,
@@ -20,6 +20,8 @@ import { TasksService } from '../services/tasks.service';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { UserGuard } from 'src/common/types/user';
 import { UserTaskGuard } from '../guards/user-task.guard';
+import { Pagination, PaginationParams } from 'src/common/pagination/paginations-params.decorator';
+import { PaginationRequestQueryDto } from 'src/common/pagination/pagination-request.dto';
 
 @ApiTags('[v1] Tasks')
 @ApiBearerAuth()
@@ -57,9 +59,12 @@ export class TasksController {
   @HttpCode(HttpStatus.OK)
   @Post('get-many-tasks')
   @ApiOperation({ summary: 'get my tasks' })
+  @ApiQuery({ type: () => PaginationRequestQueryDto })
   @ApiOkResponse({ type: () => GetManyTasksResponseDto })
-  getManyTasks(@GetUser() user: UserGuard): Promise<GetManyTasksResponseDto> {
-    console.log('user', user);
-    return this.tasksService.getManyTasks(user.email);
+  getManyTasks(
+    @PaginationParams() paginationParams: Pagination,
+    @GetUser() user: UserGuard,
+  ): Promise<GetManyTasksResponseDto> {
+    return this.tasksService.getManyTasks(user.email, paginationParams);
   }
 }
